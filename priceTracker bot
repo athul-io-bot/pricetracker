@@ -3,7 +3,8 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import requests
 from bs4 import BeautifulSoup
 import re
-
+import os
+TOKEN = os.getenv("BOT_TOKEN")
 # Your bot token from BotFather
 TOKEN = "BOT_TOKEN"
 

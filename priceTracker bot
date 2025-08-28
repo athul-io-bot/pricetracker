@@ -1,0 +1,84 @@
+import telegram
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import requests
+from bs4 import BeautifulSoup
+import re
+
+# Your bot token from BotFather
+TOKEN = "8170574336:AAHngE_O-HR64_X5jZ6gkSlkB-avxSr9vw4"
+
+# Initialize the bot
+updater = Updater(TOKEN, use_context=True)
+dispatcher = updater.dispatcher
+
+
+# Function to fetch price from Amazon
+def get_amazon_price(url):
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/91.0.4472.124 Safari/537.36"
+    }
+    r = requests.get(url, headers=headers)
+    soup = BeautifulSoup(r.content, "html.parser")
+
+    title = soup.find(id="productTitle")
+    price = soup.find("span", {"class": "a-price-whole"})
+
+    if title and price:
+        return title.get_text(strip=True), price.get_text(strip=True)
+    else:
+        return None, None
+
+
+# Function to fetch price from Flipkart
+def get_flipkart_price(url):
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/91.0.4472.124 Safari/537.36"
+    }
+    r = requests.get(url, headers=headers)
+    soup = BeautifulSoup(r.content, "html.parser")
+
+    title = soup.find("span", {"class": "B_NuCI"})
+    price = soup.find("div", {"class": "_30jeq3 _16Jk6d"})
+
+    if title and price:
+        return title.get_text(strip=True), price.get_text(strip=True)
+    else:
+        return None, None
+
+
+# Command to start the bot
+def start(update, context):
+    update.message.reply_text("Hello! Send me an Amazon or Flipkart product link and I'll fetch the price!")
+
+
+# Handler for product links
+def track_price(update, context):
+    url = update.message.text.strip()
+    title, price = None, None
+
+    if "amazon.in" in url:
+        title, price = get_amazon_price(url)
+    elif "flipkart.com" in url:
+        title, price = get_flipkart_price(url)
+
+    if title and price:
+        update.message.reply_text(f"📦 {title}\n💰 Current Price: {price}")
+    else:
+        update.message.reply_text("❌ Could not fetch the price. Please check the link.")
+
+
+# Set command handlers
+start_handler = CommandHandler('start', start)
+dispatcher.add_handler(start_handler)
+
+# Message handler for tracking prices
+track_handler = MessageHandler(Filters.text & ~Filters.command, track_price)
+dispatcher.add_handler(track_handler)
+
+# Start the bot
+updater.start_polling()
+updater.idle()

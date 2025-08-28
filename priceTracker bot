@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import re
 
 # Your bot token from BotFather
-TOKEN = "8170574336:AAHngE_O-HR64_X5jZ6gkSlkB-avxSr9vw4"
+TOKEN = "BOT_TOKEN"
 
 # Initialize the bot
 updater = Updater(TOKEN, use_context=True)
